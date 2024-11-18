@@ -17,7 +17,7 @@ function parseCSV(content) {
             }, {});
         }
         return null;
-    }).filter(row => row && row["Price (in USD)"]);
+    }).filter(row => row && row["Price (in USD)"] && row["0-60 MPH Time (seconds)"]);
 
     return removeDuplicates(data, "Car Model");
 }
@@ -82,6 +82,57 @@ function renderChart(data, brand = "all") {
     });
 }
 
+function renderAccelerationChart(data, brand = "all") {
+    const filteredData = brand === "all" ? data : data.filter(car => car["Car Make"] === brand);
+    const labels = filteredData.map(car => car["Car Model"]);
+    const accelerationTimes = filteredData.map(car => parseFloat(car["0-60 MPH Time (seconds)"]));
+
+    const ctx = document.getElementById('accelerationChart').getContext('2d');
+    if (window.myAccelerationChart) {
+        window.myAccelerationChart.destroy();
+    }
+
+    window.myAccelerationChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `0-60 MPH Time (seconds) - ${brand}`,
+                data: accelerationTimes,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.raw} seconds`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return `${value} s`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
 function populateBrandFilter(data) {
     const uniqueBrands = Array.from(new Set(data.map(car => car["Car Make"])));
     const select = document.getElementById("brandFilter");
@@ -94,6 +145,7 @@ function populateBrandFilter(data) {
 
     select.addEventListener("change", (event) => {
         renderChart(data, event.target.value);
+        renderAccelerationChart(data, event.target.value);
     });
 }
 
@@ -103,6 +155,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const carData = await loadCSV(filePath);
         populateBrandFilter(carData);
         renderChart(carData);
+        renderAccelerationChart(carData);
     } catch (error) {
         console.error("Erreur lors du chargement ou du rendu des données :", error);
     }
