@@ -17,7 +17,7 @@ function parseCSV(content) {
             }, {});
         }
         return null;
-    }).filter(row => row && row["Price (in USD)"] && row["0-60 MPH Time (seconds)"]);
+    }).filter(row => row && row["Price (in USD)"] && row["0-60 MPH Time (seconds)"] && row["Horsepower"]);
 
     return removeDuplicates(data, "Car Model");
 }
@@ -133,6 +133,46 @@ function renderAccelerationChart(data, brand = "all") {
     });
 }
 
+function renderHorsepowerChart(data, brand = "all") {
+    const filteredData = brand === "all" ? data : data.filter(car => car["Car Make"] === brand);
+    const labels = filteredData.map(car => car["Car Model"]);
+    const horsepowerValues = filteredData.map(car => parseFloat(car["Horsepower"]));
+
+    const ctx = document.getElementById('horsepowerChart').getContext('2d');
+    if (window.myHorsepowerChart) {
+        window.myHorsepowerChart.destroy();
+    }
+
+    window.myHorsepowerChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `Horsepower - ${brand}`,
+                data: horsepowerValues,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderWidth: 2,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
 function populateBrandFilter(data) {
     const uniqueBrands = Array.from(new Set(data.map(car => car["Car Make"])));
     const select = document.getElementById("brandFilter");
@@ -144,18 +184,40 @@ function populateBrandFilter(data) {
     });
 
     select.addEventListener("change", (event) => {
-        renderChart(data, event.target.value);
-        renderAccelerationChart(data, event.target.value);
+        updateChart(data, event.target.value);
     });
 }
+
+function updateChart(data, brand) {
+    const chartSelector = document.getElementById('chartSelector').value;
+
+    document.querySelectorAll('canvas').forEach(canvas => {
+        canvas.style.display = 'none';
+    });
+
+    if (chartSelector === 'priceChart') {
+        document.getElementById('priceChart').style.display = 'block';
+        renderChart(data, brand);
+    } else if (chartSelector === 'accelerationChart') {
+        document.getElementById('accelerationChart').style.display = 'block';
+        renderAccelerationChart(data, brand);
+    } else if (chartSelector === 'horsepowerChart') {
+        document.getElementById('horsepowerChart').style.display = 'block';
+        renderHorsepowerChart(data, brand);
+    }
+}
+
+document.getElementById('chartSelector').addEventListener('change', () => {
+    updateChart(window.currentData, document.getElementById('brandFilter').value);
+});
 
 document.addEventListener("DOMContentLoaded", async () => {
     const filePath = "./Sport_car_price.csv";
     try {
         const carData = await loadCSV(filePath);
+        window.currentData = carData;
         populateBrandFilter(carData);
-        renderChart(carData);
-        renderAccelerationChart(carData);
+        updateChart(carData, 'all');
     } catch (error) {
         console.error("Erreur lors du chargement ou du rendu des données :", error);
     }

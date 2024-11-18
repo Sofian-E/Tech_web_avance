@@ -8,19 +8,39 @@
     <link rel="stylesheet" href="car_prices.css">
 </head>
 <body>
-    <h1>Distribution des Prix et Analyse des Performance de Voitures de Sport par Marque</h1>
-    <div>
-        <label for="brandFilter">Filter by Brand:</label>
-        <select id="brandFilter">
-            <option value="all">All Brands</option>
-        </select>
-    </div>
-    <div id="chart-container">
-        <canvas id="priceChart"></canvas>
-    </div>
-    <div id="chart-container">
-        <canvas id="accelerationChart"></canvas>
-    </div>
+    <header>
+        <h1>Distribution des Prix et Analyse des Performances de Voitures de Sport par Marque</h1>
+    </header>
+
+    <main>
+        <section class="controls">
+            <div class="filter">
+                <label for="brandFilter">Filtrer par Marque :</label>
+                <select id="brandFilter">
+                    <option value="all">Toutes les Marques</option>
+                </select>
+            </div>
+            
+            <div class="chart-selector">
+                <label for="chartSelector">Choisir un Graphique :</label>
+                <select id="chartSelector">
+                    <option value="priceChart">Graphique des Prix</option>
+                    <option value="accelerationChart">Graphique 0-60 MPH</option>
+                    <option value="horsepowerChart">Graphique des Horsepower</option>
+                </select>
+            </div>
+        </section>
+
+        <section id="chart-container">
+            <canvas id="priceChart"></canvas>
+            <canvas id="accelerationChart" style="display: none;"></canvas>
+            <canvas id="horsepowerChart" style="display: none;"></canvas>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; Dashboard des Performance et Prix des Voitures de Sport | Réalisé par Sofian Elsaid, Ilyas Karim</p>
+    </footer>
 
     <script src="car_prices.js"></script>
 </body>
